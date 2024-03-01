@@ -1,9 +1,5 @@
-import TaskManager from './task/taskManager.js';
-import { CategoryManager } from './category/categoryManager.js';
-// Création d'une instance de CategoryManager pour gérer les catégories
-const categoryManager = new CategoryManager();
-// Création d'une instance de TaskManager pour gérer les tâches
-const taskManager = new TaskManager(categoryManager);
+import categoryManager from './category/categoryManager.js';
+import taskManager from './task/taskManager.js';
 // Chargement des tâches depuis le local storage
 taskManager.loadTasksFromLocalStorage();
 // Affichage des tâches après chargement
@@ -41,9 +37,6 @@ newCategoryButton.addEventListener('click', (event) => {
         }
         // Réinitialisation du champ d'entrée pour la nouvelle catégorie
         newCategoryInput.value = '';
-        // Mise à jour des éléments HTML des catégories
-        //categoryManager.initCategorySelect();
-        //categoryManager.initFilterCategorySelect();
     }
     else {
         // Si la nouvelle catégorie est vide, afficher un message d'erreur

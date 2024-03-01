@@ -1,12 +1,9 @@
 // taskManager.ts
 import { Priority } from './task.js';
-// import { Category } from '../category/category.js';
+import categoryManager from '../category/categoryManager.js';
 // Classe pour gérer les tâches
-export default class TaskManager {
+export class TaskManager {
     categoryManager;
-    static updateFilterCategorySelect() {
-        throw new Error('Method not implemented.');
-    }
     tasks = []; // Tableau vide au départ pour stocker les tâches ajoutées
     categories = ['non classée']; // Tableau pour stocker les catégories
     nextTaskId = 0;
@@ -21,6 +18,7 @@ export default class TaskManager {
     }
     // Méthode pour ajouter une tâche
     addNewTask(task) {
+        console.log('addNewTask called on', this); // Ajouté pour le débogage
         // Ajouter un ID unique à la tâche
         task.id = this.nextTaskId++; // Utilisation de l'opérateur ++ pour incrémenter nextTaskId après l'avoir utilisé
         // Stocker lastTaskId dans le stockage local
@@ -40,8 +38,10 @@ export default class TaskManager {
         }
         // Ajouter la tâche dans le tableau tasks
         this.tasks.push(task);
+        console.log('tasks before saveTasksToLocalStorage:', this.tasks); // Ajouté pour le débogage
         // Appeler la méthode pour sauvegarder les tâches dans le local storage après l'ajout d'une nouvelle tâche
         this.saveTasksToLocalStorage();
+        console.log('tasks after saveTasksToLocalStorage:', this.tasks); // Ajouté pour le débogage
         this.updateCategorySelect();
     }
     // Méthode pour afficher les tâches
@@ -216,5 +216,64 @@ export default class TaskManager {
             newOption.textContent = String(category.name); // Convert category to string
             taskCategorySelect.appendChild(newOption);
         });
+    }
+    // Méthode pour rechercher des tâches par mot-clé
+    // (Précision : les boutons supprimer et modifier ne fonctionnent pas pour les tâches filtrées)
+    searchTasks(keyword) {
+        console.log('searchTasks called on', this); // Ajouté pour le débogage
+        console.log('searchTasks called with keyword:', keyword); // Ajouté pour le débogage
+        console.log('tasks:', this.tasks); // Ajouté pour le débogage
+        const lowerCaseKeyword = keyword.toLowerCase();
+        return this.tasks.filter(task => {
+            const matchesTitle = task.title.toLowerCase().includes(lowerCaseKeyword);
+            const matchesDescription = task.description.toLowerCase().includes(lowerCaseKeyword);
+            const matchesCategory = (task.category?.toLowerCase() ?? '').includes(lowerCaseKeyword);
+            console.log('matchesTitle:', matchesTitle);
+            console.log('matchesDescription:', matchesDescription);
+            console.log('matchesCategory:', matchesCategory);
+            return matchesTitle || matchesDescription || matchesCategory;
+        });
+    }
+}
+// Récupérer l'input de recherche et le bouton de recherche
+const searchInput = document.getElementById('searchInput');
+const searchButton = document.getElementById('searchButton');
+// Instance de TaskManager
+const taskManager = new TaskManager(categoryManager);
+export default taskManager;
+// Gestionnaire d'événements au bouton de recherche
+searchButton.addEventListener('click', () => {
+    // Récupérer la valeur de l'input de recherche
+    const searchValue = searchInput.value;
+    console.log(typeof searchValue, searchValue);
+    // Rechercher les tâches
+    const matchingTasks = taskManager.searchTasks(searchValue);
+    console.log('matchingTasks', matchingTasks);
+    // Afficher les tâches correspondantes
+    displaySearchedTasks(matchingTasks);
+});
+// Fonction pour afficher les tâches
+function displaySearchedTasks(tasks) {
+    // Supprimer toutes les tâches actuellement affichées
+    const tasksContainer = document.getElementById('tasks');
+    if (tasksContainer) {
+        tasksContainer.innerHTML = '';
+    }
+    // Ajouter chaque tâche à taskContainer
+    for (const task of tasks) {
+        const taskContainer = document.createElement('div');
+        // ajoute une class à la div avec task et la valeur de la priorité
+        taskContainer.className = `task ${task.priority}`;
+        taskContainer.innerHTML = `
+                <h3>${task.title}<span>– Priorité ${task.priority}</span></h3>
+                <p>Catégorie : ${task.category}</p>
+                <p>Date d'échéance: ${task.date.toISOString().split('T')[0]}</p>
+                <p>${task.description}</p>
+                <button type="button" class="delete-btn">Supprimer</button>
+                <button class="edit-btn">Modifier</button>
+            `;
+        if (tasksContainer) {
+            tasksContainer.appendChild(taskContainer);
+        }
     }
 }

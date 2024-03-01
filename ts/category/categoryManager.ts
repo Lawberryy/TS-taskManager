@@ -3,7 +3,6 @@
 // Classe pour gérer les catégories
 import { Category } from './category';
 import { Task } from '../task/task';
-import TaskManager from '../task/taskManager';
 
 // Classe pour gérer les catégories
 export class CategoryManager {
@@ -43,7 +42,7 @@ export class CategoryManager {
         console.log('categories', this.categories);
     }
 
-    // 
+    // Méthode pour récupérer toutes les catégories
     getAllCategories(): string[] {
         // Assurez-vous que les catégories sont chargées
         this.loadCategoriesFromLocalStorage();
@@ -93,3 +92,6 @@ export class CategoryManager {
         console.log('filterCategorySelect', filterCategorySelect);
     }
 }
+
+const categoryManager = new CategoryManager();
+export default categoryManager;
