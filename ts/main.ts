@@ -3,10 +3,10 @@ import { Task, Priority } from './task/task.js';
 import TaskManager from './task/taskManager.js';
 import { CategoryManager } from './category/categoryManager.js';
 
-// Création d'une instance de TaskManager pour gérer les tâches
-const taskManager = new TaskManager();
 // Création d'une instance de CategoryManager pour gérer les catégories
 const categoryManager = new CategoryManager();
+// Création d'une instance de TaskManager pour gérer les tâches
+const taskManager = new TaskManager(categoryManager);
 
 // Chargement des tâches depuis le local storage
 taskManager.loadTasksFromLocalStorage();

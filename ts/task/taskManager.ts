@@ -10,11 +10,24 @@ export default class TaskManager {
     }
     private tasks: Task[] = []; // Tableau vide au départ pour stocker les tâches ajoutées
     private categories: string[] = ['non classée']; // Tableau pour stocker les catégories
-  
+    
+    nextTaskId : number = 0;
+
+    constructor(private categoryManager: CategoryManager) {
+        this.categoryManager = categoryManager;
+        // Récupérer nextTaskId du stockage local
+        const storedNextTaskId = localStorage.getItem('nextTaskId');
+        if (storedNextTaskId) {
+            this.nextTaskId = Number(storedNextTaskId);
+        }
+    }
+
     // Méthode pour ajouter une tâche
     addNewTask(task: Task) {
         // Ajouter un ID unique à la tâche
-        task.id = this.tasks.length;
+        task.id = this.nextTaskId++; // Utilisation de l'opérateur ++ pour incrémenter nextTaskId après l'avoir utilisé
+        // Stocker lastTaskId dans le stockage local
+        localStorage.setItem('nextTaskId', String(this.nextTaskId));
 
         // Ajouter une catégorie à la tâche si une catégorie a été sélectionnée
         const selectedCategory = (document.getElementById('taskCategory') as HTMLSelectElement).value;
@@ -108,6 +121,10 @@ export default class TaskManager {
                         editForm = document.createElement('form');
                         taskDiv.appendChild(editForm);
                     }
+
+                    // Charger et ajouter les catégories depuis CategoryManager
+                    this.categoryManager.loadCategoriesFromLocalStorage();
+                    const categories = this.categoryManager.categories;
                     
                     // Remplir le formulaire avec les détails de la tâche
                     editForm.innerHTML = `
@@ -120,7 +137,8 @@ export default class TaskManager {
                             <option value="${Priority.Faible}" ${task.priority === Priority.Faible ? 'selected' : ''}>Faible</option>
                         </select>
                         <select name="category">
-                            ${this.categories.map(category => `<option value="${category}" ${task.category === category ? 'selected' : ''}>${category}</option>`).join('')}
+                            <option value="non classée">Non classée</option>
+                            ${categories.map(category => `<option value="${category.name}" ${task.category === category.toString() ? 'selected' : ''}>${category.name}</option>`).join('')}
                         </select>
                         <button type="submit">Mettre à jour</button>
                     `;
@@ -225,18 +243,18 @@ export default class TaskManager {
 
     updateCategorySelect() {
         const taskCategorySelect = document.getElementById('taskCategory') as HTMLSelectElement;
+       
+        // Charger et ajouter les catégories depuis CategoryManager
+        this.categoryManager.loadCategoriesFromLocalStorage();
 
-        // Charger les catégories depuis le localStorage
-        const categories = JSON.parse(localStorage.getItem('categories') || '["non classée"]');
+        const categories = this.categoryManager.categories;
 
-        // Vider la liste déroulante
         taskCategorySelect.innerHTML = '<option value="">Sélectionnez une catégorie</option>';
-    
-        // Ajouter les options à la liste déroulante à partir des catégories existantes
-        categories.forEach((category: { name: string }) => {
+
+        categories.forEach(category => {
             const newOption = document.createElement('option');
-            newOption.value = category.name;
-            newOption.textContent = category.name;
+            newOption.value = String(category.name); // Convert category to string
+            newOption.textContent = String(category.name); // Convert category to string
             taskCategorySelect.appendChild(newOption);
         });
     }

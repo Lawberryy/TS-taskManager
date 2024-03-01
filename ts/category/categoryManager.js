@@ -28,6 +28,12 @@ export class CategoryManager {
         }
         console.log('categories', this.categories);
     }
+    // 
+    getAllCategories() {
+        // Assurez-vous que les catégories sont chargées
+        this.loadCategoriesFromLocalStorage();
+        return this.categories.map(category => category.name);
+    }
     // Méthode pour initialiser les éléments HTML des catégories après chargement
     initCategorySelect() {
         const categorySelect = document.getElementById('taskCategory');

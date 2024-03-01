@@ -3,15 +3,28 @@ import { Priority } from './task.js';
 // import { Category } from '../category/category.js';
 // Classe pour gérer les tâches
 export default class TaskManager {
+    categoryManager;
     static updateFilterCategorySelect() {
         throw new Error('Method not implemented.');
     }
     tasks = []; // Tableau vide au départ pour stocker les tâches ajoutées
     categories = ['non classée']; // Tableau pour stocker les catégories
+    nextTaskId = 0;
+    constructor(categoryManager) {
+        this.categoryManager = categoryManager;
+        this.categoryManager = categoryManager;
+        // Récupérer nextTaskId du stockage local
+        const storedNextTaskId = localStorage.getItem('nextTaskId');
+        if (storedNextTaskId) {
+            this.nextTaskId = Number(storedNextTaskId);
+        }
+    }
     // Méthode pour ajouter une tâche
     addNewTask(task) {
         // Ajouter un ID unique à la tâche
-        task.id = this.tasks.length;
+        task.id = this.nextTaskId++; // Utilisation de l'opérateur ++ pour incrémenter nextTaskId après l'avoir utilisé
+        // Stocker lastTaskId dans le stockage local
+        localStorage.setItem('nextTaskId', String(this.nextTaskId));
         // Ajouter une catégorie à la tâche si une catégorie a été sélectionnée
         const selectedCategory = document.getElementById('taskCategory').value;
         if (selectedCategory) {
@@ -92,6 +105,9 @@ export default class TaskManager {
                         editForm = document.createElement('form');
                         taskDiv.appendChild(editForm);
                     }
+                    // Charger et ajouter les catégories depuis CategoryManager
+                    this.categoryManager.loadCategoriesFromLocalStorage();
+                    const categories = this.categoryManager.categories;
                     // Remplir le formulaire avec les détails de la tâche
                     editForm.innerHTML = `
                         <input type="text" name="title" value="${task.title}">
@@ -103,7 +119,8 @@ export default class TaskManager {
                             <option value="${Priority.Faible}" ${task.priority === Priority.Faible ? 'selected' : ''}>Faible</option>
                         </select>
                         <select name="category">
-                            ${this.categories.map(category => `<option value="${category}" ${task.category === category ? 'selected' : ''}>${category}</option>`).join('')}
+                            <option value="non classée">Non classée</option>
+                            ${categories.map(category => `<option value="${category.name}" ${task.category === category.toString() ? 'selected' : ''}>${category.name}</option>`).join('')}
                         </select>
                         <button type="submit">Mettre à jour</button>
                     `;
@@ -189,15 +206,14 @@ export default class TaskManager {
     }
     updateCategorySelect() {
         const taskCategorySelect = document.getElementById('taskCategory');
-        // Charger les catégories depuis le localStorage
-        const categories = JSON.parse(localStorage.getItem('categories') || '["non classée"]');
-        // Vider la liste déroulante
+        // Charger et ajouter les catégories depuis CategoryManager
+        this.categoryManager.loadCategoriesFromLocalStorage();
+        const categories = this.categoryManager.categories;
         taskCategorySelect.innerHTML = '<option value="">Sélectionnez une catégorie</option>';
-        // Ajouter les options à la liste déroulante à partir des catégories existantes
-        categories.forEach((category) => {
+        categories.forEach(category => {
             const newOption = document.createElement('option');
-            newOption.value = category.name;
-            newOption.textContent = category.name;
+            newOption.value = String(category.name); // Convert category to string
+            newOption.textContent = String(category.name); // Convert category to string
             taskCategorySelect.appendChild(newOption);
         });
     }
